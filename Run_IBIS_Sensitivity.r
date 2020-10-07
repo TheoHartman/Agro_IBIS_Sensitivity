@@ -1,7 +1,7 @@
 #Code to run IBIS parameter set factorally
 #Updated TMH 1/14/20 for KMF
 #Updated TMH 6/22/20 for TMH
-# BMP
+
 #########################################################
 # Change the path name for your working directory here
 file = "/Users/theodore/sensitivity_km_ver/"
