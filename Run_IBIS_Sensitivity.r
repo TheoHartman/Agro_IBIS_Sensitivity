@@ -1,7 +1,7 @@
-#Code to run IBIS parameter set factorally
+#Code to run IBIS parameter set factorially
 #Updated TMH 1/14/20 for KMF
 #Updated TMH 6/22/20 for TMH
-
+#Updated TMH 11/2/20 for BP
 #########################################################
 # Change the path name for your working directory here
 file = "/Users/theodore/sensitivity_km_ver/"
@@ -16,7 +16,51 @@ library(readr)
 
 
 #Set-up of the function which will control the search and replacement of the different variables given to the function
-
+parameters_soi = function(file_soi,porosity = 0.501, fc = 0.33,wp=0.133,bexp=4.7, aep = 0.21, shc = 1.8889){
+  
+  tx = readLines(file_soi)
+  
+  if(length(porosity)==1){
+    tx2 = gsub(pattern = "!POROSITY!", replacement = porosity, x = tx)
+  }else{
+    tx2 = gsub(pattern = "!POROSITY!", replacement = porosity[c_porosity], x = tx)
+  }
+  
+  if(length(fc)==1){
+    tx2 = gsub(pattern = "!FC!", replacement = fc, x = tx2)
+  }else{
+    tx2 = gsub(pattern = "!FC!", replacement = fc[c_fc], x = tx2)
+  }
+  
+  
+  if(length(wp)==1){
+    tx2 = gsub(pattern = "!WP!", replacement = wp, x = tx2)
+  }else{
+    tx2 = gsub(pattern = "!WP!", replacement = wp[c_wp], x = tx2)
+  }
+  
+  if(length(bexp)==1){
+    tx2 = gsub(pattern = "!BEXP!", replacement = bexp, x = tx2)
+  }else{
+    tx2 = gsub(pattern = "!BEXP!", replacement = bexp[c_bexp], x = tx2)
+  }
+  
+  if(length(aep)==1){
+    tx2 = gsub(pattern = "!AEP!", replacement = aep, x = tx2)
+  }else{
+    tx2 = gsub(pattern = "!AEP!", replacement = aep[c_aep], x = tx2)
+  }
+  
+  if(length(shc)==1){
+    tx2 = gsub(pattern = "!SHC!", replacement = shc, x = tx2)
+  }else{
+    tx2 = gsub(pattern = "!SHC!", replacement = shc[c_shc], x = tx2)
+  }
+  
+  writeLines(tx2, con = "params.soi")
+  unlink(tx)
+  unlink(tx2)
+}
 
 parameters_crp = function(file_crp,arooti = 0.35,arootf = 0.20,astemf=0.35,fleafi=0.47, grnfill = .49, hybgdd = 1600){
   
@@ -112,12 +156,12 @@ run_IBIS = function(){
 #Inputs for the parameter changing function
 file_crp = "params_flag.crp"
 file_can = "params_flag.can"
+file_soi = "params_flag.soi"
 ######################################
 #Set values to run on
 ######################################
 arooti = c(.2,.35,.5)
 arootf = c(0.1,0.2,0.3)
-#aleaff = c(0.0,0.2)
 astemf = c(0.2,0.3,0.4)
 fleafi = c(.6,.75,.9)
 hybgdd = c(1400,1500,1600)
@@ -126,13 +170,20 @@ coefm = c(8,9,10)
 specla = c(40,45,50)
 vcmax = c(90,100,110,120)
 gamma = c(0.010,0.020) 
+porosity = c(0.501)
+fc = c(0.33)
+wp = c(0.133)
+bexp = c(4.7)
+aep = c(0.21)
+shc = c(1.8889)
 ######################################
 
+################################################## Change the variables in iterations to be the variables you include above
 #Enter number of parameters in the runs
-parameters = 10
+parameters = 16
 outputs = 1 #Just yield in the main yearly output file. Biomass is in separate data frames because daily
-iterations = (length(arooti)*length(arootf)*length(astemf)*length(fleafi)*length(hybgdd)*length(grnfill)*length(vcmax)*length(coefm)*length(specla)*length(gamma))
-
+iterations = (length(arooti)*length(arootf)*length(astemf)*length(fleafi)*length(hybgdd)*length(grnfill)*length(vcmax)*length(coefm)*length(specla)*length(gamma)*length(porosity)*length(fc)*length(wp)*length(bexp)*length(aep)*length(shc))
+####################################################
 #Initialize number counter for runs
 run_num = 0
 
@@ -154,9 +205,16 @@ for(c_arooti in 1:length(arooti)){
                   for(c_specla in 1:length(specla)){
                     for(c_gamma in 1:length(gamma)){
                       for(c_vcmax in 1:length(vcmax)){
+                        for(c_porosity in 1:length(porosity)){
+                          for(c_fc in 1:length(fc)){
+                            for(c_wp in 1:length(wp)){
+                              for(c_bexp in 1:length(bexp)){
+                                for(c_aep in 1:length(aep)){
+                                  for(c_shc in 1:length(shc)){
 
                      	 parameters_crp(file_crp,arooti,arootf,astemf,fleafi,grnfill,hybgdd)
                      	 parameters_can(file_can,coefm,specla,gamma,vcmax)
+                     	 parameters_soi(file_soi,porosity,fc,wp,bexp,aep,shc)
 
                   
                       	run_IBIS()
@@ -198,8 +256,14 @@ for(c_arooti in 1:length(arooti)){
                       	ibis_data[run_num,7] = coefm[c_coefm]
                       	ibis_data[run_num,8] = specla[c_specla]
                       	ibis_data[run_num,9] = gamma[c_gamma]
-			ibis_data[run_num,10] = vcmax[c_vcmax]
-                      	ibis_data[run_num,11] = yield[13]
+			                  ibis_data[run_num,10] = vcmax[c_vcmax]
+			                  ibis_data[run_num,11] = vcmax[c_porosity]
+			                  ibis_data[run_num,12] = vcmax[c_fc]
+			                  ibis_data[run_num,13] = vcmax[c_wp]
+			                  ibis_data[run_num,14] = vcmax[c_bexp]
+			                  ibis_data[run_num,15] = vcmax[c_aep]
+			                  ibis_data[run_num,16] = vcmax[c_shc]
+                      	ibis_data[run_num,17] = yield[13]
 
                     }
                   }
@@ -211,7 +275,12 @@ for(c_arooti in 1:length(arooti)){
       }
     }
   }
-
+            }
+          }
+        }
+      }
+  }
+}
 
 ######################################################################
 #setwd
